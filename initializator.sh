@@ -33,7 +33,9 @@ then
   dpkg -i $download_file
 fi
 
-git clone git@github.com:jimbodragon/jimbodragon_chef_repo.git > /dev/null 2>&1
+current_dir=$(pwd)
+
+git clone git@github.com:jimbodragon/JimboDragon.git > /dev/null 2>&1
 cookbooks_path="$(pwd)/jimbodragon_chef_repo/berks_vendor"
 mkdir $cookbooks_path > /dev/null 2>&1
 
@@ -47,15 +49,14 @@ EOS
 cat<<EOS > node.json
 {
   "chef_workstation_initialize": {
-    "project_name": "$project_name",
+    "project_name": "JimboDragon",
     "environments": [$chef_environment_json],
     "initial_command": "$initial_command",
-    "install_dir": "$(pwd)",
+    "install_dir": "$current_dir/jimbodragon_chef_repo",
     "chef_solo_command": "$chef_solo_command"
   }
 }
 EOS
-
 chef_solo_command="chef-solo --chef-license 'accept' --json-attributes node.json --config solo.rb --override-runlist 'recipe[chef_workstation_initialize]'"
 
 eval "$chef_solo_command"
