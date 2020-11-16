@@ -13,8 +13,12 @@ os_version='18.04'
 chef_workstation_version='20.10.168'
 chef_client_version='16.6.14'
 chef_version=$chef_client_version
-download_file='/tmp/chef_install.deb'
-project_name=$1
+
+project_name="$1"
+project_path="$(pwd)/$project_name"
+berks_vendor_path="$project_path/berks_vendor"
+cookbooks_path="$project_path//berks_vendor"
+download_file="$project_path/chef_install.deb"
 shift
 for chef_environment in $@
 do
@@ -33,10 +37,7 @@ then
   dpkg -i $download_file
 fi
 
-current_dir=$(pwd)
-
 git clone git@github.com:jimbodragon/JimboDragon.git > /dev/null 2>&1
-cookbooks_path="$(pwd)/jimbodragon_chef_repo/berks_vendor"
 mkdir $cookbooks_path > /dev/null 2>&1
 
 cd jimbodragon_chef_repo/cookbooks/chef_workstation_initialize
