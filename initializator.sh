@@ -37,12 +37,10 @@ then
   dpkg -i $download_file
 fi
 
-git clone git@github.com:jimbodragon/$project_name.git > /dev/null 2>&1
-git submodule update
 mkdir $cookbooks_path > /dev/null 2>&1
-cd $project_name
+cd $project_path
 
-cd $project_name/cookbooks/chef_workstation_initialize
+cd $project_path/cookbooks/chef_workstation_initialize
 berks vendor --delete $cookbooks_path
 
 cat << EOS > $project_path/solo.rb
