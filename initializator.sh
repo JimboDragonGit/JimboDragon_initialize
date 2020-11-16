@@ -37,17 +37,19 @@ then
   dpkg -i $download_file
 fi
 
-git clone git@github.com:jimbodragon/JimboDragon.git > /dev/null 2>&1
+git clone git@github.com:jimbodragon/$project_name.git > /dev/null 2>&1
+git submodule update
 mkdir $cookbooks_path > /dev/null 2>&1
+cd $project_name
 
-cd jimbodragon_chef_repo/cookbooks/chef_workstation_initialize
+cd $project_name/cookbooks/chef_workstation_initialize
 berks vendor --delete $cookbooks_path
 
-cat << EOS > solo.rb
+cat << EOS > $project_path/solo.rb
 cookbook_path ['$cookbooks_path']
 EOS
 
-cat<<EOS > node.json
+cat<<EOS > $project_path/node.json
 {
   "chef_workstation_initialize": {
     "project_name": "JimboDragon",
@@ -58,6 +60,6 @@ cat<<EOS > node.json
   }
 }
 EOS
-chef_solo_command="chef-solo --chef-license 'accept' --json-attributes node.json --config solo.rb --override-runlist 'recipe[chef_workstation_initialize]'"
+chef_solo_command="chef-solo --chef-license 'accept' --json-attributes $project_path/node.json --config $project_path/solo.rb --override-runlist 'recipe[chef_workstation_initialize]'"
 
 eval "$chef_solo_command"

@@ -31,6 +31,6 @@ The goal of this project is to create a auto fully automate Infrastructure suppo
 
 8. Adding prerequisites to run: apt-get install git; git config --global user.name "jimbodragon"; git config --global user.email 'jimmy.provencher@hotmail.ca'; git config --global core.editor nano; git config --global user.signingkey 'cef63f94bb8320d50587f235c7daa305f8488fb6'
 
-9. Here is the magic: 'cd /root/ && rm -rf JimboDragon; git clone git@github.com:JimboDragonGit/JimboDragon.git && cd JimboDragon/scripts && git clone git@github.com:JimboDragonGit/JimboDragon_initialize.git && bash JimboDragon_initialize/initializator.sh Exemple Test Dev QA SIT DR'
+9. Here is the magic: 'cd /root/ && rm -rf JimboDragon; git clone git@github.com:JimboDragonGit/JimboDragon.git && cd JimboDragon/scripts && git clone git@github.com:JimboDragonGit/JimboDragon_initialize.git && bash JimboDragon_initialize/initializator.sh JimboDragon Exemple Test Dev QA SIT DR'
 
 ##Notes: If you are using a github acces to start, be sure that the starting machine has the access to fetch from your repository
