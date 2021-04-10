@@ -15,9 +15,9 @@ chef_client_version='16.6.14'
 chef_version=$chef_client_version
 
 project_name="$1"
-project_path="$(pwd)/$project_name"
+project_path="/root/$project_name"
 berks_vendor_path="$project_path/berks_vendor"
-cookbooks_path="$project_path//berks_vendor"
+cookbooks_path="$project_path/berks_vendor"
 download_file="$project_path/chef_install.deb"
 shift
 for chef_environment in $@
@@ -53,7 +53,7 @@ cat<<EOS > $project_path/node.json
     "project_name": "JimboDragon",
     "environments": [$chef_environment_json],
     "initial_command": "$initial_command",
-    "install_dir": "$current_dir/jimbodragon_chef_repo",
+    "install_dir": "$project_path",
     "chef_solo_command": "$chef_solo_command"
   }
 }
