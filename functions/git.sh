@@ -1,42 +1,38 @@
 #!/bin/bash
 
-current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-source $current_dir/../data/$(basename "${BASH_SOURCE[0]}")
-
 function install_git()
 {
-  if [ "$(for git in $(sudo apt-cache madison git | cut -d '|' -f 2); do sudo dpkg -l | grep git | grep $git; done | head -n 1 | awk '{print $1}')" != "ii" ]
-  then
-    #apt-get -y update && sudo apt-get -y upgrade
-    apt-get -y install git
-  fi
+  check_and_install git
+  get_github_netrc
 }
 export -f install_git
+
+function install_jq()
+{
+  check_and_install jq
+}
+export -f install_jq
 
 function merging_from_fork()
 {
   project_folder=$1
   remote_project_url=$2
-  git_upstream_name=$git_fork_upstream_name #$3
-  branch_to_fork_with=$4
 
-  branch_to_fork_with='master'
-
-  remote_project_name=$(git remote -v | grep "$git_upstream_name" | awk '{print $1}' | head -n 1)
-  actual_remote_project_url=$(git remote -v | grep "$git_upstream_name" | awk '{print $2}' | head -n 1)
+  remote_project_name=$(git remote -v | grep "$git_fork_upstream_name" | awk '{print $1}' | head -n 1)
+  actual_remote_project_url=$(git remote -v | grep "$git_fork_upstream_name" | awk '{print $2}' | head -n 1)
   cd $project_folder
-  if [ $remote_project_name == "" ]
+  if [ "$remote_project_name" == "" ]
   then
-    git remote add $git_upstream_name $remote_project_url
-    git fetch $git_upstream_name master
-    git checkout $branch_to_fork_with
-    git merge $git_upstream_name/master
+    git remote add $git_fork_upstream_name $remote_project_url
+    git fetch $git_fork_upstream_name master
+    git checkout $git_branch
+    git merge $git_fork_upstream_name/master
     git push
   elif [ "$remote_project_url" == "$actual_remote_project_url" ]
   then
-    echo "Remote project '$remote_project_name' -> '$actual_remote_project_url' already exist"
+    log "Remote project '$remote_project_name' -> '$actual_remote_project_url' already exist"
   else
-    echo "Already have a remote project call '$git_upstream_name' -> '$actual_remote_project_url'"
+    log "Already have a remote project call '$git_fork_upstream_name' -> '$actual_remote_project_url'"
   fi
   cd ..
 }
@@ -77,30 +73,14 @@ export -f merge_2_branches
 
 function initializing_git_submodule()
 {
-  folder_relative_path=$1
-  git_url=$2
+  git_url=$1
+  folder_relative_path=$2
+
+  log "From $(pwd), initializing $folder_relative_path with $git_url"
   git submodule add $git_url $folder_relative_path
   git submodule update --init $git_url $folder_relative_path
 }
 export -f initializing_git_submodule
-
-function initializing_project_submodule()
-{
-  repository_name=$1
-  fork_from_public=$2
-  git_url=$3
-  if [ "$git_url" == "" ]
-  then
-    initializing_git_submodule "$git_user@$git_baseurl:$git_org/$repository_name.git" "$repository_name"
-  else
-    initializing_git_submodule "$git_url" "$repository_name"
-  fi
-  if [ "$fork_from_public" != "" ]
-  then
-    merging_from_fork $repository_name $fork_from_public
-  fi
-}
-export -f initializing_project_submodule
 
 function git_push_for_fork()
 {
@@ -108,6 +88,7 @@ function git_push_for_fork()
   git push origin master --tags
   git push $fork_name
 }
+export -f git_push_for_fork
 
 function commit_and_push()
 {
@@ -164,9 +145,9 @@ function git_push_submodule()
 {
   for github_repo in "${git_repos[@]}"
   do
-    cd $main_repo_dir
+    cd $chef_path
     eval $github_repo
-    echo "Pushing $type $name $fork_from_public $git_url"
+    log "Pushing $type $name $fork_from_public $git_url"
     cd $type/$name
     commit_and_push "Push all $git_main_project_name project"
     echo
@@ -177,13 +158,15 @@ export -f git_push_submodule
 
 function git_clone_main_project()
 {
+  log "Cloning main project"
+  install_git
   git_main_url="$git_user@$git_baseurl:$git_org/$git_main_project_name.git"
   if [ -d $git_main_project_name ] || [ "$(basename $(pwd))" == "$git_main_project_name" ]
   then
     if [ -d $git_main_project_name ]; then cd $git_main_project_name; fi
     if [ $(git remote -v 2>&1 | grep $git_main_url | wc -l) -eq 0 ] && [ $(git remote -v | grep origin | wc -l) -gt 0 ]
     then
-      remote add second_origin $git_main_url
+      git remote add $project_name $git_main_url
     fi
     git submodule update --init --recursive .
   else
@@ -195,11 +178,13 @@ function git_clone_main_project()
 }
 export -f git_clone_main_project
 
-function download_git_raw()
+function take_ownership()
 {
-  git_repository_name=$1
-  file_to_download=$2
-  raw_url="https://raw.githubusercontent.com/$git_org/$git_repository_name/master/"
-  wget --quiet -O "$file_to_download" "$raw_url/$file_to_download"
+  cd $chef_repo_path
+  $type=$1
+  initializing_git_submodule "$3" "$1/$2"
+  cd "$1/$2"
+  git remote rename origin $git_fork_upstream_name
+  cd $chef_repo_path
 }
-export -f download_git_raw
+export -f take_ownership
